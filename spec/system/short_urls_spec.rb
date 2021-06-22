@@ -70,6 +70,10 @@ RSpec.describe 'Short Urls', type: :system do
   end
 
   describe 'visit' do
+    before do
+      FactoryBot.create(:url, short_url: "ABCDE", original_url: "https://example.com")
+    end
+
     it 'redirects the user to the original url' do
       visit visit_path('ABCDE')
       # add more expections
@@ -77,8 +81,7 @@ RSpec.describe 'Short Urls', type: :system do
 
     context 'when not found' do
       it 'shows a 404 page' do
-        visit visit_path('NOTFOUND')
-        # expect page to be a 404
+        expect{visit visit_path('NOTFOUND')}.to raise_error(ActionController::RoutingError)
       end
     end
   end

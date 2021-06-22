@@ -8,8 +8,8 @@ RSpec.describe Url, type: :model do
       skip 'add test'
     end
 
-    it 'validates short URL is present' do
-      skip 'add test'
+    it 'ensures that short url is always created' do
+      expect{Url.create!(original_url: "https://example.com", created_at: Time.now)}.not_to raise_error(ActiveRecord::NotNullViolation)
     end
 
     # add more tests

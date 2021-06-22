@@ -4,16 +4,16 @@ class UrlsController < ApplicationController
   def index
     # recent 10 short urls
     @url = Url.new
-    @urls = [
-      Url.new(short_url: 'ABCDE', original_url: 'http://google.com', created_at: Time.now),
-      Url.new(short_url: 'ABCDG', original_url: 'http://facebook.com', created_at: Time.now),
-      Url.new(short_url: 'ABCDF', original_url: 'http://yahoo.com', created_at: Time.now)
-    ]
+    @urls = Url.all
   end
 
   def create
-    raise 'add some code'
-    # create a new URL record
+    url = Url.new(create_params)
+    if url.save
+      redirect_to root_url
+    else
+      raise "handle error"
+    end
   end
 
   def show
@@ -46,7 +46,45 @@ class UrlsController < ApplicationController
   end
 
   def visit
-    # params[:short_url]
-    render plain: 'redirecting to url...'
+    url = Url.find_by_short_url(params["short_url"])
+    if url.present?
+      url.clicks.create(click_params)
+      url.log_click
+      redirect_to url.original_url
+    else
+      raise ActionController::RoutingError.new('Not Found')
+    end
   end
+
+  private
+    def create_params
+      params.require(:url).permit(:original_url).merge(created_at: Time.now)
+    end
+
+    def broswer
+      @browser ||= Browser.new(request.env['HTTP_USER_AGENT'], accept_language: "en-us")
+    end
+
+    def click_params
+      {
+        browser: browser_name,
+        platform: browser.platform
+      }
+    end
+
+    def browser_name
+      if browser.chrome?
+        "Chrome"
+      elsif browser.firefox?
+        "Firefox"
+      elsif browser.ie?
+        "IE"
+      elsif browser.opera?
+        "Opera"
+      elsif browser.safari?
+        "Safari"
+      else
+        "Other"
+      end
+    end
 end
